@@ -9,15 +9,23 @@ from PIL import Image, ImageOps
 from google import genai
 from google.genai import types
 
+# ==========================================
+# [解説1] ローカルの隠しファイルを自動で読み込む設定
+# ==========================================
+# 💡 `python-dotenv` という道具を使い、同じフォルダにある `.env` ファイルを自動的に探します。
+# `load_dotenv()` を実行することで、ファイルに書かれたAPIキーをプログラムが使える状態にします。
+from dotenv import load_dotenv
+load_dotenv()
+
 app = FastAPI()
 
 reader = None
 
 # ==========================================
-# [解説1] 安全なAPIキーの読み込み（コードの心臓部）
+# [解説2] パソコン内から安全にAPIキーを取り出す
 # ==========================================
-# 💡 OS（パソコン環境）または `.env` ファイルからAPIキーを自動で取り出します。
-# コード上に生のキーが残らないため、GitHubにアップロードしても絶対に怒られなくなります！
+# 💡 上の `load_dotenv()` で読み込んだデータの中から、"GEMINI_API_KEY" という名前の鍵を取り出します。
+# コードの中に直接キーを書かないため、GitHubにアップロードしても絶対に怒られなくなります！
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 @app.post("/upload-receipt")
@@ -31,14 +39,14 @@ async def upload_receipt(file: UploadFile = File(...)):
     
     try:
         # ==========================================
-        # [解説2] APIキーが正しく設定されているかの事前チェック
+        # [解説3] キーが正しく読み込めているかの安全チェック
         # ==========================================
-        # 💡 万が一、.envファイルの書き間違いなどでキーが読み込めなかった場合、
+        # 💡 万が一、.envファイルの書き間違いなどでキーが空っぽ（None）だった場合、
         # 処理が進んでエラーになる前に、分かりやすい日本語でエラーを画面に返して教えてくれます。
         if not GEMINI_API_KEY:
             return JSONResponse(status_code=500, content={
                 "status": "error",
-                "message": "GEMINI_API_KEY が設定されていません。.env ファイルを確認してください。"
+                "message": "GEMINI_API_KEY が設定されていません。.env ファイルの中身やファイル名を確認してください。"
             })
 
         if reader is None:
@@ -69,10 +77,10 @@ async def upload_receipt(file: UploadFile = File(...)):
         category = "その他"
         
         # ==========================================
-        # [解説3] 取り出した安全なキーを使ってAIを起動
+        # [解説4] 取り出した安全なキーを使ってAIを起動
         # ==========================================
-        # 💡 上の「解説1」でローカルから安全に抜き取った `GEMINI_API_KEY` を使って、
-        # GoogleのAI（Gemini）と通信を開始します。中身の処理は前回の強力な補正のままです。
+        # 💡 [解説2] で安全に取り出したキーを、GoogleのAIクライアントに渡します。
+        # レシートの文字化けを脳内補正する強力な命令文（プロンプト）はそのまま引き継いでいます。
         try:
             client = genai.Client(api_key=GEMINI_API_KEY)
             
