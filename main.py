@@ -55,7 +55,7 @@ async def upload_receipt(file: UploadFile = File(...)):
         price = 0
         category = "その他"
         
-        if GEMINI_API_KEY != "あなたの_GEMINI_API_KEY":
+        if GEMINI_API_KEY != "AQ.Ab8RN6JlNQp_3MIOFMeT053nOKifYlk_4Up5wLcOndKYQQw9Rg":
             try:
                 # AIの準備
                 client = genai.Client(api_key=GEMINI_API_KEY)
