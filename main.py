@@ -2,57 +2,59 @@ import os
 import re
 import traceback
 import io
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, UploadFile, File, HTTPException, Request  # 💡 Requestを追加
+from fastapi.responses import JSONResponse, HTMLResponse
+# ==========================================
+# [段落1] 外部ファイルを読み込むための道具を追加
+# ==========================================
+# 💡 `StaticFiles`（CSS用）と `Jinja2Templates`（HTML用）という、
+# 外部のフォルダからファイルを読み込んで画面に映し出すための専用の道具を取り込みます。
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 import easyocr
 from PIL import Image, ImageOps
 from google import genai
 from google.genai import types
 
-# ==========================================
-# [段落1] デスクトップの「正しい住所」を計算する
-# ==========================================
-# 💡 パソコンのログインユーザー名（例: `taro` や `admin` など）は人によって違います。
-# `os.path.expanduser("~")` を使うことで、プログラムが自動的に
-# 「いま使っているユーザーのホームフォルダ（C:/Users/ユーザー名）」を割り出してくれます。
-# そこに `/Desktop/.env` を合流させることで、デスクトップにあるファイルの正しい住所（パス）が完成します。
-desktop_path = os.path.join(os.path.expanduser("~"), "Desktop", ".env")
-
-# ==========================================
-# [段落2] デスクトップの鍵を狙い撃ちして自動読み込み
-# ==========================================
-# 💡 道具（`load_dotenv`）を使い、先ほど[段落1]で計算したデスクトップの住所を直接指定します。
-# これにより、プログラムと同じフォルダではなく、デスクトップにある `.env` から
-# 鍵（APIキー）をピンポイントで吸い上げることができるようになります。
+# --- デスクトップの「.env」読み込み設定 ---
 from dotenv import load_dotenv
+desktop_path = os.path.join(os.path.expanduser("~"), "Desktop", ".env")
 load_dotenv(desktop_path)
 
 app = FastAPI()
 
-reader = None
+# ==========================================
+# [段落2] 外部フォルダの場所をFastAPIに教えてあげる設定
+# ==========================================
+# 💡 「staticフォルダの中身はCSSだよ」「templatesフォルダの中にHTMLがあるよ」と
+# FastAPIにそれぞれの部屋の場所を教えて、いつでも使えるようにスタンバイさせます。
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
-# ==========================================
-# [段落3] 吸い上げた安全なAPIキーを取り出す
-# ==========================================
-# 💡 デスクトップの `.env` から読み込まれたデータの中から、"GEMINI_API_KEY" を取り出します。
-# これでコード上には生のキーが残らないため、GitHub対策もバッチリ維持されます。
+reader = None
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
+# ==========================================
+# [段落3] トップページにアクセスした時、自作HTMLファイルを読み込んで表示
+# ==========================================
+# 💡 これまではコード内に直接HTMLを書いていましたが、
+# `templates.TemplateResponse` を使うことで、`templates/index.html` の中身を
+# 自動で読み込んでブラウザに表示してくれるようになります！スッキリ！
+@app.get("/", response_class=HTMLResponse)
+def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+# ==========================================
+# [段落4] レシートアップロードAPI（中身は1文字も変えずにそのまま）
+# ==========================================
 @app.post("/upload-receipt")
 async def upload_receipt(file: UploadFile = File(...)):
     global reader
-    
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="画像ファイルをアップロードしてください。")
 
     temp_file_path = f"temp_{file.filename}"
-    
     try:
-        # ==========================================
-        # [段落4] デスクトップの鍵が読めているかの安全チェック
-        # ==========================================
-        # 💡 万が一、デスクトップに置いたファイルの文字が間違っていたり、
-        # ファイルがうまく見つからなかった場合は、ここで分かりやすいエラーを出して教えてくれます。
         if not GEMINI_API_KEY:
             return JSONResponse(status_code=500, content={
                 "status": "error",
@@ -88,7 +90,6 @@ async def upload_receipt(file: UploadFile = File(...)):
         
         try:
             client = genai.Client(api_key=GEMINI_API_KEY)
-            
             prompt = f"""
             あなたは優秀な家計簿アプリのデータ補正エンジンです。
             以下は、レシートをOCRで読み取った結果ですが、激しく文字化けしています。
@@ -142,7 +143,3 @@ async def upload_receipt(file: UploadFile = File(...)):
     finally:
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
-
-@app.get("/")
-def read_root():
-    return {"message": "Receipt API with Gemini is running"}
