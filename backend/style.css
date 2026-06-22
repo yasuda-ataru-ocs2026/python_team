@@ -1,0 +1,152 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:sans-serif;
+}
+ 
+body{
+    background:#0d0d0d;
+    color:white;
+}
+ 
+.container{
+    max-width:430px;
+    margin:auto;
+    padding:20px;
+}
+ 
+.card{
+    background:#181818;
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:20px;
+}
+ 
+.chart-card{
+    display:flex;
+    justify-content:center;
+}
+ 
+canvas{
+    max-width:260px;
+}
+ 
+.balance{
+    margin-top:15px;
+}
+ 
+.balance h1{
+    font-size:36px;
+}
+ 
+.budget-setting{
+    display:flex;
+    gap:10px;
+    margin:15px 0;
+}
+ 
+.budget-setting input{
+    flex:1;
+}
+ 
+.budget-setting input,
+.modal-content input{
+    padding:10px;
+    border:none;
+    border-radius:10px;
+    background:#2a2a2a;
+    color:white;
+}
+ 
+.budget-setting button,
+.modal-content button{
+    background:#ff9d00;
+    color:white;
+    border:none;
+    border-radius:10px;
+    padding:10px 15px;
+    cursor:pointer;
+}
+ 
+.category{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:15px;
+}
+ 
+.actions{
+    display:flex;
+    gap:8px;
+}
+ 
+.actions button{
+    border:none;
+    background:none;
+    color:white;
+    cursor:pointer;
+    font-size:18px;
+}
+ 
+.progress{
+    height:8px;
+    background:#2a2a2a;
+    border-radius:20px;
+    overflow:hidden;
+    margin-top:8px;
+}
+ 
+.bar{
+    height:100%;
+    background:#ff9d00;
+}
+ 
+.add-btn{
+    position:fixed;
+    bottom:30px;
+    right:30px;
+ 
+    width:60px;
+    height:60px;
+ 
+    border:none;
+    border-radius:50%;
+ 
+    background:#ff9d00;
+    color:white;
+ 
+    font-size:32px;
+    cursor:pointer;
+ 
+    box-shadow:0 0 20px rgba(255,157,0,.4);
+}
+ 
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.7);
+ 
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+ 
+.hidden{
+    display:none;
+}
+ 
+.modal-content{
+    width:90%;
+    max-width:350px;
+ 
+    background:#181818;
+    padding:20px;
+ 
+    border-radius:20px;
+ 
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+ 

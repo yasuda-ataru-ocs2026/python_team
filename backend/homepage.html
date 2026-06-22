@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+ 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>家計簿アプリ</title>
+ 
+    <link rel="stylesheet" href="style.css">  
+ 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
+</head>
+ 
+<body>
+ 
+    <div class="container">
+ 
+        <header>
+ 
+            <h2>家計簿アプリ</h2>
+ 
+            <div class="balance">
+ 
+                <span>今月予算</span>
+ 
+                <div class="budget-setting">
+                    <input id="budgetInput" type="number" placeholder="予算を入力">
+                    <button id="saveBudget">保存</button>
+                </div>
+ 
+                <span>残り予算</span>
+                <h1 id="remainingBudget">¥0</h1>
+ 
+            </div>
+ 
+        </header>
+ 
+        <section class="card chart-card">
+            <canvas id="expenseChart"></canvas>
+        </section>
+ 
+        <section class="card">
+            <h3>カテゴリ別支出</h3>
+ 
+            <div id="categoryList"></div>
+        </section>
+ 
+        <button class="add-btn">+</button>
+ 
+    </div>
+ 
+    <!-- モーダル -->
+ 
+    <div id="modal" class="modal hidden">
+ 
+        <div class="modal-content">
+ 
+            <h3 id="modalTitle">支出追加</h3>
+ 
+            <input
+                type="text"
+                id="categoryName"
+                placeholder="カテゴリ名">  
+            <input
+                type="number"
+                id="amount"
+                placeholder="金額">
+ 
+            <button id="saveExpense">
+                保存
+            </button>
+ 
+        </div>
+ 
+    </div>
+ 
+    <script src="app.js"></script>
+ 
+</body>
+ 
+</html>
