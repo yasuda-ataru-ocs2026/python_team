@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>家計簿アプリ</title>
  
-    <link rel="stylesheet" href="style.css">  
+    <link rel="stylesheet" href="/static/style.css">  
  
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
 </head>
@@ -34,6 +34,15 @@
             </div>
  
         </header>
+
+        <section class="card receipt-card" style="margin-bottom: 20px; text-align: center;">
+            <h3 style="margin-top:0;">📸 AIレシート自動入力</h3>
+            <label for="receiptFile" style="display:inline-block; background:#7f5af0; color:white; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; margin-bottom:10px;">
+                画像を選択
+            </label>
+            <input type="file" id="receiptFile" accept="image/*" style="display:none;">
+            <div id="receiptStatus" style="font-size:13px; color:#666;">レシートを選択してください</div>
+        </section>
  
         <section class="card chart-card">
             <canvas id="expenseChart"></canvas>
@@ -48,8 +57,6 @@
         <button class="add-btn">+</button>
  
     </div>
- 
-    <!-- モーダル -->
  
     <div id="modal" class="modal hidden">
  
@@ -74,7 +81,7 @@
  
     </div>
  
-    <script src="app.js"></script>
+    <script src="/static/app.js"></script>
  
 </body>
  

@@ -316,3 +316,62 @@ document
     saveData();
     render();
 });
+
+// ==========================================
+// 📸 【新設】AIレシート画像を検知してサーバーに送る処理
+// ==========================================
+// 💡 HTMLにある画像選択ボタン（receiptFile）と、状態表示テキスト（receiptStatus）を見張ります。
+const receiptFile = document.getElementById("receiptFile");
+const receiptStatus = document.getElementById("receiptStatus");
+
+if (receiptFile) {
+    receiptFile.addEventListener("change", async () => {
+        if (receiptFile.files.length === 0) return;
+
+        const file = receiptFile.files[0];
+        receiptStatus.innerText = `⏳ AIが「${file.name}」を解読中（約15秒）...`;
+        receiptStatus.style.color = "#7f5af0";
+
+        // 💡 選択された画像データを箱（FormData）に詰めて、名前を 'file' にします（Python側と一致させるため）
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            // 💡 自作した裏側のFastAPI（/upload-receipt）に向けて画像を送信！
+            const response = await fetch("/upload-receipt", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.status === "success") {
+                // 💡 AIが文字化けから解読してくれた綺麗なデータを取り出す
+                const aiData = data.parsed_data;
+                
+                // 💡 今の家計簿のデータ（categories）にAIの結果を自動追加！
+                categories.push({
+                    name: aiData.store,       // AIが割り出した店舗名（またはカテゴリ）
+                    amount: Number(aiData.price) // AIが割り出した金額
+                });
+
+                // 💡 データをブラウザに保存して、画面（グラフとリスト）を最新にリフレッシュ！
+                saveData();
+                render();
+
+                receiptStatus.innerText = `✨ 「${aiData.store}」の ¥${aiData.price.toLocaleString()} を自動入力しました！`;
+                receiptStatus.style.color = "#06d6a0";
+            } else {
+                receiptStatus.innerText = `❌ エラー: ${data.message}`;
+                receiptStatus.style.color = "#ff6b81";
+            }
+        } catch (error) {
+            console.error(error);
+            receiptStatus.innerText = "❌ 通信エラーが発生しました。サーバーが起動しているか確認してください。";
+            receiptStatus.style.color = "#ff6b81";
+        } finally {
+            // 次の選択のために中身をリセット
+            receiptFile.value = "";
+        }
+    });
+}

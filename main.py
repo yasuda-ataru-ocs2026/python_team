@@ -2,13 +2,12 @@ import os
 import re
 import traceback
 import io
-from fastapi import FastAPI, UploadFile, File, HTTPException, Request  # 💡 Requestを追加
+from fastapi import FastAPI, UploadFile, File, HTTPException, Request
 from fastapi.responses import JSONResponse, HTMLResponse
 # ==========================================
-# [段落1] 外部ファイルを読み込むための道具を追加
+# [段落1] 外部ファイルを読み込む道具の準備
 # ==========================================
-# 💡 `StaticFiles`（CSS用）と `Jinja2Templates`（HTML用）という、
-# 外部のフォルダからファイルを読み込んで画面に映し出すための専用の道具を取り込みます。
+# 💡 外部のフォルダからHTMLやCSS、JSを引っ張ってくるための部品をインポートします。
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import easyocr
@@ -24,29 +23,32 @@ load_dotenv(desktop_path)
 app = FastAPI()
 
 # ==========================================
-# [段落2] 外部フォルダの場所をFastAPIに教えてあげる設定
+# [段落2] フォルダの場所をFastAPIに教えてあげる
 # ==========================================
-# 💡 「staticフォルダの中身はCSSだよ」「templatesフォルダの中にHTMLがあるよ」と
-# FastAPIにそれぞれの部屋の場所を教えて、いつでも使えるようにスタンバイさせます。
+# 💡 「staticフォルダの中にCSSやapp.jsがあるよ」「templatesフォルダの中にHTMLがあるよ」
+# とFastAPIに教えて、いつでも読み込めるように繋ぎ込みます。
 app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+# 💡 templatesフォルダの中の「homepage.html」への正しい住所を計算しておきます
+homepage_file_path = os.path.join("templates", "homepage.html")
 
 reader = None
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 # ==========================================
-# [段落3] トップページにアクセスした時、自作HTMLファイルを読み込んで表示
+# [段落3] あなたの「homepage.html」を呼び出す処理
 # ==========================================
-# 💡 これまではコード内に直接HTMLを書いていましたが、
-# `templates.TemplateResponse` を使うことで、`templates/index.html` の中身を
-# 自動で読み込んでブラウザに表示してくれるようになります！スッキリ！
+# 💡 ブラウザで `http://127.0.0.1:8000/` にアクセスした瞬間、
+# `templates/homepage.html` を自動で読み込んで画面に映し出します！
 @app.get("/", response_class=HTMLResponse)
 def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+   with open(homepage_file_path, "r", encoding="utf-8") as f:
+        html_content = f.read()
+        return html_content
 
 # ==========================================
-# [段落4] レシートアップロードAPI（中身は1文字も変えずにそのまま）
+# [段落4] レシートアップロードAPI（中身はそのまま維持）
 # ==========================================
+# 💡 `app.js` から画像を受け取ってAIで解析する裏側の処理です。
 @app.post("/upload-receipt")
 async def upload_receipt(file: UploadFile = File(...)):
     global reader
